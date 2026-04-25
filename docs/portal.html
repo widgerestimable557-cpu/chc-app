@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>Church App Portal</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,sans-serif;background:#f4f6fb;min-height:100vh}
+
+/* SPLASH */
+#splash{position:fixed;inset:0;background:linear-gradient(145deg,#2563eb,#06b6d4);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;transition:opacity .5s}
+#splash.hide{opacity:0;pointer-events:none}
+.sp-logo{font-size:64px;margin-bottom:16px;animation:pulse 1.8s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.sp-name{color:#fff;font-size:22px;font-weight:800;margin-bottom:8px}
+.sp-sub{color:rgba(255,255,255,.7);font-size:14px}
+.sp-bar-wrap{margin-top:32px;width:200px;height:4px;background:rgba(255,255,255,.2);border-radius:999px;overflow:hidden}
+.sp-bar{height:100%;background:#fff;border-radius:999px;animation:load 2.5s forwards}
+@keyframes load{from{width:0}to{width:100%}}
+
+/* SETUP (si pas de config trouvée) */
+#setup{display:none;min-height:100vh;background:linear-gradient(145deg,#2563eb,#06b6d4);align-items:center;justify-content:center;padding:24px;flex-direction:column}
+#setup.show{display:flex}
+.setup-card{background:#fff;border-radius:20px;padding:28px;width:100%;max-width:400px}
+.setup-card h2{font-size:18px;color:#1f2937;margin-bottom:4px;text-align:center}
+.setup-card p{font-size:13px;color:#6b7280;text-align:center;margin-bottom:20px}
+.setup-card label{font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:5px;margin-top:12px}
+.setup-card input{width:100%;padding:11px;border:2px solid #e5e7eb;border-radius:9px;font-size:14px}
+.btn-go{background:#2563eb;color:#fff;border:none;padding:13px;border-radius:10px;width:100%;font-size:15px;font-weight:700;cursor:pointer;margin-top:16px}
+.hint{color:rgba(255,255,255,.75);font-size:12px;text-align:center;margin-top:14px;max-width:340px;line-height:1.5}
+
+/* APP FRAME */
+#frame{width:100%;height:100vh;border:none;display:none}
+#frame.show{display:block}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="sp-logo" id="sp-logo">✝️</div>
+  <div class="sp-name" id="sp-name">Chargement...</div>
+  <div class="sp-sub" id="sp-sub">Church App</div>
+  <div class="sp-bar-wrap"><div class="sp-bar"></div></div>
+</div>
+
+<!-- SETUP (si première fois) -->
+<div id="setup">
+  <div class="setup-card">
+    <h2>✝️ Church App</h2>
+    <p>Entrez le lien de votre application pour commencer</p>
+    <label>🔗 URL de votre application GAS</label>
+    <input type="url" id="url-input" placeholder="https://script.google.com/macros/s/..."/>
+    <button class="btn-go" onclick="saveAndLaunch()">Connecter mon église →</button>
+  </div>
+  <div class="hint">💡 Ce lien vous est fourni par votre administrateur. Une fois entré, l'app se souvient automatiquement.</div>
+</div>
+
+<!-- APP -->
+<iframe id="frame" allow="camera;microphone;geolocation;fullscreen"
+  sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-modals allow-top-navigation">
+</iframe>
+
+<script>
+const STORAGE_KEY = 'chc_church_url';
+const STORAGE_INFO = 'chc_church_info';
+
+// Essayer de récupérer les infos de l'église via le doGet GAS
+async function fetchChurchInfo(url) {
+  try {
+    // Appel au doGet GAS avec ?action=appInfo
+    const res = await fetch(url + (url.includes('?') ? '&' : '?') + 'action=appInfo', {
+      redirect: 'follow', mode: 'cors'
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    // Attendu: { name: "Mon Église", logo: "https://...", url: "https://..." }
+    if (data && data.name) return data;
+  } catch(e) {}
+  return null;
+}
+
+function updateSplash(name, logo) {
+  document.getElementById('sp-name').textContent = name || 'Church App';
+  if (logo) document.getElementById('sp-logo').innerHTML = `<img src="${logo}" style="width:80px;height:80px;border-radius:20px;object-fit:cover"/>`;
+  document.getElementById('sp-sub').textContent = 'Bienvenue !';
+  document.title = name || 'Church App';
+}
+
+function launchApp(url) {
+  const frame = document.getElementById('frame');
+  frame.src = url;
+  setTimeout(() => {
+    document.getElementById('splash').classList.add('hide');
+    setTimeout(() => {
+      document.getElementById('splash').style.display = 'none';
+      frame.classList.add('show');
+    }, 500);
+  }, 2500);
+}
+
+async function init() {
+  const savedUrl  = localStorage.getItem(STORAGE_KEY);
+  const savedInfo = JSON.parse(localStorage.getItem(STORAGE_INFO) || 'null');
+
+  if (savedUrl) {
+    // Afficher infos sauvegardées immédiatement
+    if (savedInfo) updateSplash(savedInfo.name, savedInfo.logo);
+
+    // Essayer de rafraîchir les infos en arrière-plan
+    fetchChurchInfo(savedUrl).then(info => {
+      if (info) {
+        localStorage.setItem(STORAGE_INFO, JSON.stringify(info));
+        updateSplash(info.name, info.logo);
+      }
+    });
+
+    launchApp(savedUrl);
+  } else {
+    // Première fois : afficher setup après 1s
+    setTimeout(() => {
+      document.getElementById('splash').style.display = 'none';
+      document.getElementById('setup').classList.add('show');
+    }, 1000);
+  }
+}
+
+async function saveAndLaunch() {
+  const url = document.getElementById('url-input').value.trim();
+  if (!url.startsWith('http')) { alert('Entrez un lien valide'); return; }
+
+  localStorage.setItem(STORAGE_KEY, url);
+  document.getElementById('setup').classList.remove('show');
+  document.getElementById('splash').style.display = 'flex';
+
+  // Essayer de récupérer infos église
+  const info = await fetchChurchInfo(url);
+  if (info) {
+    localStorage.setItem(STORAGE_INFO, JSON.stringify(info));
+    updateSplash(info.name, info.logo);
+  }
+
+  launchApp(url);
+}
+
+init();
+</script>
+</body>
+</html>
