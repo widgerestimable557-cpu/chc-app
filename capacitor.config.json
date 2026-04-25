@@ -1,0 +1,35 @@
+{
+  "appId": "com.christianhelpcenter.app",
+  "appName": "Christian Help Center",
+  "webDir": "public",
+  "server": {
+    "url": "https://script.google.com/macros/s/AKfycbwIVAoFlTLfbVX4GKxgdHoKvVgOE2s1BpIUTwjDQEpj_r3-rsc7fjF8RNyUiVcZ1Kk-Ig/exec",
+    "cleartext": false,
+    "allowNavigation": [
+      "script.google.com",
+      "*.google.com",
+      "*.googleapis.com",
+      "*.googleusercontent.com"
+    ]
+  },
+  "android": {
+    "allowMixedContent": false,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false,
+    "backgroundColor": "#2563eb",
+    "appendUserAgent": "CHCApp/1.0"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "backgroundColor": "#2563eb",
+      "showSpinner": true,
+      "spinnerColor": "#ffffff",
+      "androidSpinnerStyle": "large"
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#2563eb"
+    }
+  }
+}
