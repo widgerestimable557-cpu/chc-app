@@ -1,5 +1,10 @@
 apply plugin: 'com.android.application'
 
+repositories {
+    google()
+    mavenCentral()
+}
+
 android {
     namespace "com.christianhelpcenter.app"
     compileSdk 34
@@ -13,12 +18,8 @@ android {
     }
 
     buildTypes {
-        release {
-            minifyEnabled false
-        }
-        debug {
-            debuggable true
-        }
+        release { minifyEnabled false }
+        debug { debuggable true }
     }
 
     compileOptions {
