@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#2563eb" />
+  <title>Church App</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; background: #f4f6fb; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* SETUP SCREEN */
+    #setup-screen {
+      position: fixed; inset: 0; background: linear-gradient(145deg, #2563eb, #06b6d4);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 24px; z-index: 9999;
+    }
+    #setup-screen.hide { display: none; }
+    .setup-logo { font-size: 56px; margin-bottom: 16px; }
+    .setup-title { color: #fff; font-size: 24px; font-weight: 800; text-align: center; margin-bottom: 6px; }
+    .setup-sub { color: rgba(255,255,255,0.8); font-size: 14px; text-align: center; margin-bottom: 32px; }
+    .setup-card { background: #fff; border-radius: 20px; padding: 24px; width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+    .setup-card label { font-size: 13px; font-weight: 600; color: #374151; display: block; margin-bottom: 6px; }
+    .setup-card input { width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; outline: none; margin-bottom: 16px; }
+    .setup-card input:focus { border-color: #2563eb; }
+    .setup-card input.error { border-color: #ef4444; }
+    .btn-connect { background: #2563eb; color: #fff; border: none; padding: 14px; border-radius: 10px; width: 100%; font-size: 16px; font-weight: 700; cursor: pointer; }
+    .btn-connect:active { background: #1d4ed8; }
+    .err-msg { color: #ef4444; font-size: 13px; text-align: center; margin-top: 8px; display: none; }
+    .setup-hint { color: rgba(255,255,255,0.7); font-size: 12px; text-align: center; margin-top: 16px; max-width: 320px; line-height: 1.5; }
+
+    /* SPLASH */
+    #splash { position: fixed; inset: 0; background: linear-gradient(145deg, #2563eb, #06b6d4); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 8888; transition: opacity 0.5s ease; }
+    #splash.hide { opacity: 0; pointer-events: none; }
+    .splash-logo { font-size: 52px; margin-bottom: 16px; animation: pulse 1.8s infinite; }
+    @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+    .splash-name { color: #fff; font-size: 20px; font-weight: 800; }
+    .splash-loader { margin-top: 32px; width: 180px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 999px; overflow: hidden; }
+    .splash-bar { height: 100%; background: #fff; border-radius: 999px; animation: load 2s forwards; }
+    @keyframes load { from{width:0} to{width:100%} }
+
+    /* ERROR */
+    #error-screen { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 40px 24px; text-align: center; gap: 16px; flex: 1; }
+    #error-screen .ico { font-size: 52px; }
+    #error-screen h2 { font-size: 20px; color: #1f2937; }
+    #error-screen p { font-size: 14px; color: #6b7280; max-width: 300px; line-height: 1.6; }
+    .btn-retry { background: #2563eb; color: #fff; border: none; padding: 12px 28px; border-radius: 999px; font-size: 15px; font-weight: 600; cursor: pointer; }
+    .btn-change { background: none; color: #2563eb; border: 2px solid #2563eb; padding: 10px 24px; border-radius: 999px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 4px; }
+
+    /* FRAME */
+    #app-frame { flex: 1; border: none; display: none; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+    #app-frame.visible { display: block; }
+  </style>
+</head>
+<body>
+
+<!-- SETUP SCREEN -->
+<div id="setup-screen">
+  <div class="setup-logo">✝️</div>
+  <div class="setup-title">Church App</div>
+  <div class="setup-sub">Connectez votre église</div>
+  <div class="setup-card">
+    <label>🔗 Lien de votre application (URL GAS)</label>
+    <input type="url" id="gas-input" placeholder="https://script.google.com/macros/s/..." />
+    <button class="btn-connect" onclick="connectApp()">Se connecter →</button>
+    <div class="err-msg" id="err-msg">❌ Veuillez entrer un lien valide</div>
+  </div>
+  <div class="setup-hint">💡 Ce lien vous est fourni par votre administrateur d'église. Il commence par script.google.com ou ressemble à un lien web normal.</div>
+</div>
+
+<!-- SPLASH -->
+<div id="splash" style="display:none">
+  <div class="splash-logo">✝️</div>
+  <div class="splash-name" id="splash-name">Chargement...</div>
+  <div class="splash-loader"><div class="splash-bar"></div></div>
+</div>
+
+<!-- ERROR -->
+<div id="error-screen">
+  <div class="ico">📡</div>
+  <h2>Connexion impossible</h2>
+  <p>Vérifiez votre connexion internet et réessayez.</p>
+  <button class="btn-retry" onclick="retryApp()">🔄 Réessayer</button>
+  <button class="btn-change" onclick="changeApp()">🔧 Changer de lien</button>
+</div>
+
+<!-- APP FRAME -->
+<iframe id="app-frame" src="about:blank"
+  allow="camera; microphone; geolocation; fullscreen"
+  sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-modals allow-top-navigation">
+</iframe>
+
+<script>
+  const KEY = 'chc_gas_url';
+  const setupEl = document.getElementById('setup-screen');
+  const splashEl = document.getElementById('splash');
+  const errorEl  = document.getElementById('error-screen');
+  const frameEl  = document.getElementById('app-frame');
+  const inputEl  = document.getElementById('gas-input');
+  const errMsg   = document.getElementById('err-msg');
+
+  // Au démarrage : URL sauvegardée ?
+  const saved = localStorage.getItem(KEY);
+  if (saved) {
+    setupEl.classList.add('hide');
+    launchApp(saved);
+  }
+
+  function connectApp() {
+    const url = inputEl.value.trim();
+    if (!url || (!url.startsWith('http://') && !url.startsWith('https://'))) {
+      inputEl.classList.add('error');
+      errMsg.style.display = 'block';
+      return;
+    }
+    inputEl.classList.remove('error');
+    errMsg.style.display = 'none';
+    localStorage.setItem(KEY, url);
+    setupEl.classList.add('hide');
+    launchApp(url);
+  }
+
+  function launchApp(url) {
+    // Afficher splash
+    splashEl.style.display = 'flex';
+    splashEl.classList.remove('hide');
+    errorEl.style.display = 'none';
+    frameEl.classList.remove('visible');
+
+    setTimeout(() => {
+      frameEl.src = url;
+      const timeout = setTimeout(showError, 20000);
+      frameEl.onload = () => { clearTimeout(timeout); showApp(); };
+      frameEl.onerror = () => { clearTimeout(timeout); showError(); };
+    }, 2000);
+  }
+
+  function showApp() {
+    splashEl.classList.add('hide');
+    setTimeout(() => { splashEl.style.display = 'none'; frameEl.classList.add('visible'); }, 500);
+  }
+
+  function showError() {
+    splashEl.style.display = 'none';
+    errorEl.style.display = 'flex';
+  }
+
+  function retryApp() {
+    const url = localStorage.getItem(KEY);
+    if (url) launchApp(url);
+  }
+
+  function changeApp() {
+    localStorage.removeItem(KEY);
+    errorEl.style.display = 'none';
+    frameEl.classList.remove('visible');
+    frameEl.src = 'about:blank';
+    setupEl.classList.remove('hide');
+    inputEl.value = '';
+  }
+
+  // Entrée clavier
+  inputEl.addEventListener('keydown', e => { if (e.key === 'Enter') connectApp(); });
+</script>
+</body>
+</html>
