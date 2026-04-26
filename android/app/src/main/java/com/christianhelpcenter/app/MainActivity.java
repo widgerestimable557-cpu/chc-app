@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.webkit.GeolocationPermissions;
 import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -21,6 +22,9 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Activer le débogage WebView (à retirer en production)
+        WebView.setWebContentsDebuggingEnabled(false);
+
         webView = new WebView(this);
         setContentView(webView);
 
@@ -36,8 +40,6 @@ public class MainActivity extends Activity {
         s.setSupportZoom(false);
         s.setBuiltInZoomControls(false);
         s.setCacheMode(WebSettings.LOAD_DEFAULT);
-
-        // User-Agent avec CHCApp/1.0
         s.setUserAgentString(s.getUserAgentString() + " CHCApp/1.0");
 
         webView.setWebViewClient(new WebViewClient() {
@@ -47,17 +49,30 @@ public class MainActivity extends Activity {
             }
         });
 
-        // ✅ WebChromeClient avec gestion des permissions micro/caméra
         webView.setWebChromeClient(new WebChromeClient() {
+
+            // ✅ CLEF : accorder automatiquement micro + caméra à la WebView
             @Override
             public void onPermissionRequest(final PermissionRequest request) {
-                // Accorder automatiquement micro et caméra à la WebView
-                request.grant(request.getResources());
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        // Accorder TOUTES les permissions demandées par la page web
+                        request.grant(request.getResources());
+                    }
+                });
+            }
+
+            // ✅ Géolocalisation aussi
+            @Override
+            public void onGeolocationPermissionsShowPrompt(String origin,
+                    GeolocationPermissions.Callback callback) {
+                callback.invoke(origin, true, false);
             }
         });
 
-        // Demander permissions Android au démarrage
-        requestPermissions();
+        // Demander permissions Android natives au démarrage
+        requestNativePermissions();
 
         String html = "<!DOCTYPE html><html><head>"
             + "<meta charset='UTF-8'/>"
@@ -102,7 +117,7 @@ public class MainActivity extends Activity {
         webView.loadDataWithBaseURL("https://app.churchlocal", html, "text/html", "UTF-8", null);
     }
 
-    private void requestPermissions() {
+    private void requestNativePermissions() {
         String[] perms = {
             Manifest.permission.CAMERA,
             Manifest.permission.RECORD_AUDIO,
@@ -116,6 +131,15 @@ public class MainActivity extends Activity {
         }
         if (!needed.isEmpty()) {
             requestPermissions(needed.toArray(new String[0]), PERM_CODE);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        // Recharger la page après accord des permissions
+        if (webView != null) {
+            webView.reload();
         }
     }
 
