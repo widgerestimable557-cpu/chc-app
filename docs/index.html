@@ -3,28 +3,36 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Church App — Télécharger</title>
+<title>Christian Help Center — Télécharger</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:system-ui,sans-serif;background:linear-gradient(145deg,#2563eb,#06b6d4);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-.card{background:#fff;border-radius:24px;padding:36px;max-width:420px;width:100%;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,0.2)}
-.logo{font-size:64px;margin-bottom:16px}
-h1{font-size:24px;color:#1f2937;margin-bottom:8px}
-p{color:#6b7280;font-size:15px;margin-bottom:32px;line-height:1.6}
-.btn-dl{display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:16px 36px;border-radius:14px;font-size:18px;font-weight:700;margin-bottom:16px;width:100%}
-.btn-dl:active{background:#1d4ed8}
-.version{color:#9ca3af;font-size:12px;margin-top:8px}
+body{font-family:system-ui,sans-serif;background:linear-gradient(145deg,#075e54,#128c7e);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:#fff;border-radius:24px;padding:36px 28px;max-width:400px;width:100%;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,0.25)}
+.logo{font-size:72px;margin-bottom:16px}
+h1{font-size:22px;color:#1f2937;margin-bottom:8px;font-weight:800}
+.sub{color:#6b7280;font-size:15px;margin-bottom:28px;line-height:1.5}
+.btn-dl{display:flex;align-items:center;justify-content:center;gap:10px;background:#25d366;color:#fff;text-decoration:none;padding:16px;border-radius:14px;font-size:17px;font-weight:700;margin-bottom:12px;box-shadow:0 4px 12px rgba(37,211,102,0.4);transition:transform .15s}
+.btn-dl:active{transform:scale(0.97)}
+.note{color:#9ca3af;font-size:12px;margin-top:8px;line-height:1.5}
+.features{display:flex;gap:12px;justify-content:center;margin:20px 0;flex-wrap:wrap}
+.feat{background:#f0fdf4;color:#059669;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600}
 </style>
 </head>
 <body>
 <div class="card">
   <div class="logo">✝️</div>
-  <h1>Church App</h1>
-  <p>Téléchargez l'application pour accéder à votre communauté d'église directement depuis votre téléphone.</p>
+  <h1>Christian Help Center</h1>
+  <p class="sub">Rejoignez votre communauté chrétienne directement depuis votre téléphone</p>
+  <div class="features">
+    <span class="feat">🎤 Vocal</span>
+    <span class="feat">📷 Photos</span>
+    <span class="feat">🔴 Live</span>
+    <span class="feat">🙏 Prière</span>
+  </div>
   <a class="btn-dl" href="https://github.com/widgerestimable557-cpu/chc-app/releases/latest/download/app-debug.apk">
     ⬇️ Télécharger l'App
   </a>
-  <div class="version">Android 6.0+ requis • Gratuit</div>
+  <p class="note">📱 Android 6.0+ requis • Gratuit<br>Activez "Sources inconnues" avant d'installer</p>
 </div>
 </body>
 </html>
