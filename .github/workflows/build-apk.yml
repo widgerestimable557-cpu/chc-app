@@ -26,9 +26,23 @@ jobs:
         working-directory: android
         run: ./gradlew assembleDebug --stacktrace
 
-      - name: Upload Debug APK
+      - name: Upload Debug APK as artifact
         uses: actions/upload-artifact@v4
         with:
           name: CHC-Debug-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
+
+      - name: Create Release with APK
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: "CHC App — Dernière version"
+          body: |
+            ## ✝️ Christian Help Center App
+            Téléchargez et installez l'APK sur votre téléphone Android.
+            > Android 6.0+ requis
+          files: android/app/build/outputs/apk/debug/app-debug.apk
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
