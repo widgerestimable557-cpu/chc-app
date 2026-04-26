@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.webkit.GeolocationPermissions;
+import android.webkit.JavascriptInterface;
 import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -17,13 +18,10 @@ public class MainActivity extends Activity {
     private WebView webView;
     private static final int PERM_CODE = 1001;
 
-    @SuppressLint("SetJavaScriptEnabled")
+    @SuppressLint({"SetJavaScriptEnabled","AddJavascriptInterface"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Activer le débogage WebView (à retirer en production)
-        WebView.setWebContentsDebuggingEnabled(false);
 
         webView = new WebView(this);
         setContentView(webView);
@@ -42,28 +40,34 @@ public class MainActivity extends Activity {
         s.setCacheMode(WebSettings.LOAD_DEFAULT);
         s.setUserAgentString(s.getUserAgentString() + " CHCApp/1.0");
 
+        // ✅ Interface Java exposée au JavaScript
+        webView.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");
+
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView v, android.webkit.WebResourceRequest r) {
                 return false;
             }
+
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                // ✅ Injecter le patch getUserMedia après chaque chargement de page
+                injectMicPatch(view);
+            }
         });
 
         webView.setWebChromeClient(new WebChromeClient() {
-
-            // ✅ CLEF : accorder automatiquement micro + caméra à la WebView
             @Override
             public void onPermissionRequest(final PermissionRequest request) {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        // Accorder TOUTES les permissions demandées par la page web
                         request.grant(request.getResources());
                     }
                 });
             }
 
-            // ✅ Géolocalisation aussi
             @Override
             public void onGeolocationPermissionsShowPrompt(String origin,
                     GeolocationPermissions.Callback callback) {
@@ -71,7 +75,6 @@ public class MainActivity extends Activity {
             }
         });
 
-        // Demander permissions Android natives au démarrage
         requestNativePermissions();
 
         String html = "<!DOCTYPE html><html><head>"
@@ -117,6 +120,51 @@ public class MainActivity extends Activity {
         webView.loadDataWithBaseURL("https://app.churchlocal", html, "text/html", "UTF-8", null);
     }
 
+    // ✅ Injecter un patch qui remplace getUserMedia par une version qui marche
+    private void injectMicPatch(WebView view) {
+        String js = "(function() {" +
+            "  if (window.__chcMicPatched) return;" +
+            "  window.__chcMicPatched = true;" +
+            "  var origGetUserMedia = navigator.mediaDevices && navigator.mediaDevices.getUserMedia" +
+            "    ? navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices) : null;" +
+            "  if (origGetUserMedia) {" +
+            "    navigator.mediaDevices.getUserMedia = function(constraints) {" +
+            "      return origGetUserMedia(constraints).catch(function(err) {" +
+            "        console.log('CHCApp: getUserMedia error:', err.name, err.message);" +
+            "        return Promise.reject(err);" +
+            "      });" +
+            "    };" +
+            "  }" +
+            "  console.log('CHCApp: mic patch applied on ' + location.href);" +
+            "})();";
+        view.evaluateJavascript(js, null);
+    }
+
+    // ✅ Interface Android accessible depuis JavaScript
+    public class AndroidBridge {
+        @JavascriptInterface
+        public boolean hasMicPermission() {
+            return checkSelfPermission(Manifest.permission.RECORD_AUDIO)
+                == PackageManager.PERMISSION_GRANTED;
+        }
+
+        @JavascriptInterface
+        public void requestMicPermission() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    requestPermissions(
+                        new String[]{ Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA },
+                        PERM_CODE
+                    );
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public boolean isAPK() { return true; }
+    }
+
     private void requestNativePermissions() {
         String[] perms = {
             Manifest.permission.CAMERA,
@@ -125,9 +173,7 @@ public class MainActivity extends Activity {
         };
         java.util.List<String> needed = new java.util.ArrayList<>();
         for (String p : perms) {
-            if (checkSelfPermission(p) != PackageManager.PERMISSION_GRANTED) {
-                needed.add(p);
-            }
+            if (checkSelfPermission(p) != PackageManager.PERMISSION_GRANTED) needed.add(p);
         }
         if (!needed.isEmpty()) {
             requestPermissions(needed.toArray(new String[0]), PERM_CODE);
@@ -135,12 +181,9 @@ public class MainActivity extends Activity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        // Recharger la page après accord des permissions
-        if (webView != null) {
-            webView.reload();
-        }
+    public void onRequestPermissionsResult(int code, String[] perms, int[] results) {
+        super.onRequestPermissionsResult(code, perms, results);
+        if (webView != null) webView.reload();
     }
 
     @Override
