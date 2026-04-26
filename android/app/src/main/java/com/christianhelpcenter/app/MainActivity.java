@@ -17,7 +17,6 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // WebView directement sans layout XML
         webView = new WebView(this);
         setContentView(webView);
 
@@ -34,6 +33,10 @@ public class MainActivity extends Activity {
         s.setBuiltInZoomControls(false);
         s.setCacheMode(WebSettings.LOAD_DEFAULT);
 
+        // ✅ User-Agent avec CHCApp/1.0 — détecté par le frontend GAS
+        String defaultUA = s.getUserAgentString();
+        s.setUserAgentString(defaultUA + " CHCApp/1.0");
+
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView v, android.webkit.WebResourceRequest r) {
@@ -42,7 +45,6 @@ public class MainActivity extends Activity {
         });
         webView.setWebChromeClient(new WebChromeClient());
 
-        // Page HTML chargée localement — pas besoin d'internet au démarrage
         String html = "<!DOCTYPE html><html><head>"
             + "<meta charset='UTF-8'/>"
             + "<meta name='viewport' content='width=device-width,initial-scale=1,viewport-fit=cover'/>"
@@ -65,15 +67,12 @@ public class MainActivity extends Activity {
             + "<p>Connectez votre &eacute;glise</p>"
             + "<label>&#x1F517; URL de votre application</label>"
             + "<input type='url' id='u' placeholder='https://script.google.com/macros/s/...'/>"
-            + "<div class='err' id='e'>Veuillez entrer un lien valide (https://...)</div>"
+            + "<div class='err' id='e'>Veuillez entrer un lien valide</div>"
             + "<button onclick='go()'>Se connecter &#x2192;</button>"
-            + "<div class='hint'>&#x1F4A1; Ce lien vous est fourni par votre administrateur d&#x27;&#xe9;glise. L&#x27;app s&#x27;en souvient automatiquement.</div>"
+            + "<div class='hint'>&#x1F4A1; Ce lien vous est fourni par votre administrateur.</div>"
             + "</div>"
             + "<script>"
-            + "try{"
-            + "var s=localStorage.getItem('gas_url');"
-            + "if(s&&s.startsWith('http')){window.location.replace(s);}"
-            + "}catch(ex){}"
+            + "try{var s=localStorage.getItem('gas_url');if(s&&s.startsWith('http')){window.location.replace(s);}}catch(ex){}"
             + "function go(){"
             + "var u=document.getElementById('u').value.trim();"
             + "var e=document.getElementById('e');"
@@ -82,39 +81,22 @@ public class MainActivity extends Activity {
             + "try{localStorage.setItem('gas_url',u);}catch(ex){}"
             + "window.location.replace(u);"
             + "}"
-            + "document.getElementById('u').addEventListener('keydown',function(ev){"
-            + "if(ev.key==='Enter')go();"
-            + "});"
+            + "document.getElementById('u').addEventListener('keydown',function(ev){if(ev.key==='Enter')go();});"
             + "</script>"
             + "</body></html>";
 
-        webView.loadDataWithBaseURL(
-            "https://app.churchlocal",
-            html,
-            "text/html",
-            "UTF-8",
-            null
-        );
+        webView.loadDataWithBaseURL("https://app.churchlocal", html, "text/html", "UTF-8", null);
     }
 
     @Override
     public void onBackPressed() {
-        if (webView != null && webView.canGoBack()) {
-            webView.goBack();
-        } else {
-            super.onBackPressed();
-        }
+        if (webView != null && webView.canGoBack()) webView.goBack();
+        else super.onBackPressed();
     }
 
     @Override
     protected void onSaveInstanceState(Bundle out) {
         super.onSaveInstanceState(out);
         if (webView != null) webView.saveState(out);
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle saved) {
-        super.onRestoreInstanceState(saved);
-        if (webView != null) webView.restoreState(saved);
     }
 }
