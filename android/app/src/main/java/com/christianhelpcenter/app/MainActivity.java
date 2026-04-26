@@ -2,15 +2,19 @@ package com.christianhelpcenter.app;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.Manifest;
 
 public class MainActivity extends Activity {
 
     private WebView webView;
+    private static final int PERM_CODE = 1001;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -33,9 +37,8 @@ public class MainActivity extends Activity {
         s.setBuiltInZoomControls(false);
         s.setCacheMode(WebSettings.LOAD_DEFAULT);
 
-        // ✅ User-Agent avec CHCApp/1.0 — détecté par le frontend GAS
-        String defaultUA = s.getUserAgentString();
-        s.setUserAgentString(defaultUA + " CHCApp/1.0");
+        // User-Agent avec CHCApp/1.0
+        s.setUserAgentString(s.getUserAgentString() + " CHCApp/1.0");
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
@@ -43,7 +46,18 @@ public class MainActivity extends Activity {
                 return false;
             }
         });
-        webView.setWebChromeClient(new WebChromeClient());
+
+        // ✅ WebChromeClient avec gestion des permissions micro/caméra
+        webView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public void onPermissionRequest(final PermissionRequest request) {
+                // Accorder automatiquement micro et caméra à la WebView
+                request.grant(request.getResources());
+            }
+        });
+
+        // Demander permissions Android au démarrage
+        requestPermissions();
 
         String html = "<!DOCTYPE html><html><head>"
             + "<meta charset='UTF-8'/>"
@@ -86,6 +100,23 @@ public class MainActivity extends Activity {
             + "</body></html>";
 
         webView.loadDataWithBaseURL("https://app.churchlocal", html, "text/html", "UTF-8", null);
+    }
+
+    private void requestPermissions() {
+        String[] perms = {
+            Manifest.permission.CAMERA,
+            Manifest.permission.RECORD_AUDIO,
+            Manifest.permission.MODIFY_AUDIO_SETTINGS
+        };
+        java.util.List<String> needed = new java.util.ArrayList<>();
+        for (String p : perms) {
+            if (checkSelfPermission(p) != PackageManager.PERMISSION_GRANTED) {
+                needed.add(p);
+            }
+        }
+        if (!needed.isEmpty()) {
+            requestPermissions(needed.toArray(new String[0]), PERM_CODE);
+        }
     }
 
     @Override
