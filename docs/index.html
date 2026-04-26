@@ -3,36 +3,93 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Christian Help Center — Télécharger</title>
+<title>Télécharger Church App</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:system-ui,sans-serif;background:linear-gradient(145deg,#075e54,#128c7e);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-.card{background:#fff;border-radius:24px;padding:36px 28px;max-width:400px;width:100%;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,0.25)}
-.logo{font-size:72px;margin-bottom:16px}
-h1{font-size:22px;color:#1f2937;margin-bottom:8px;font-weight:800}
-.sub{color:#6b7280;font-size:15px;margin-bottom:28px;line-height:1.5}
-.btn-dl{display:flex;align-items:center;justify-content:center;gap:10px;background:#25d366;color:#fff;text-decoration:none;padding:16px;border-radius:14px;font-size:17px;font-weight:700;margin-bottom:12px;box-shadow:0 4px 12px rgba(37,211,102,0.4);transition:transform .15s}
-.btn-dl:active{transform:scale(0.97)}
-.note{color:#9ca3af;font-size:12px;margin-top:8px;line-height:1.5}
-.features{display:flex;gap:12px;justify-content:center;margin:20px 0;flex-wrap:wrap}
-.feat{background:#f0fdf4;color:#059669;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600}
+.card{background:#fff;border-radius:24px;padding:32px 24px;max-width:400px;width:100%;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,0.25)}
+.logo{font-size:64px;margin-bottom:16px}
+h1{font-size:20px;color:#1f2937;margin-bottom:6px;font-weight:800}
+.sub{color:#6b7280;font-size:14px;margin-bottom:24px;line-height:1.5}
+.features{display:flex;gap:8px;justify-content:center;margin-bottom:24px;flex-wrap:wrap}
+.feat{background:#f0fdf4;color:#059669;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600}
+.btn-main{display:flex;align-items:center;justify-content:center;gap:10px;background:#25d366;color:#fff;padding:16px;border-radius:14px;font-size:17px;font-weight:700;margin-bottom:12px;box-shadow:0 4px 12px rgba(37,211,102,0.4);cursor:pointer;border:none;width:100%}
+.btn-main:disabled{background:#9ca3af;box-shadow:none}
+.progress-wrap{display:none;margin-top:12px}
+.progress-wrap.show{display:block}
+.progress-bar{height:6px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin-bottom:8px}
+.progress-fill{height:100%;background:#25d366;border-radius:999px;animation:prog 3s ease forwards}
+@keyframes prog{from{width:0}to{width:100%}}
+.progress-text{font-size:13px;color:#6b7280;text-align:center}
+.steps{background:#f8fafc;border-radius:12px;padding:16px;margin-top:16px;text-align:left;display:none}
+.steps.show{display:block}
+.steps h3{font-size:13px;font-weight:700;color:#374151;margin-bottom:10px;text-align:center}
+.step{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
+.step:last-child{margin-bottom:0}
+.step-num{background:#075e54;color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
+.step-text{font-size:13px;color:#374151;line-height:1.4}
+.step-text strong{color:#075e54}
+.note{color:#9ca3af;font-size:11px;margin-top:12px;line-height:1.6}
+.warn-box{background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:12px;margin-bottom:16px;font-size:13px;color:#92400e;display:none}
 </style>
 </head>
 <body>
 <div class="card">
   <div class="logo">✝️</div>
   <h1>Christian Help Center</h1>
-  <p class="sub">Rejoignez votre communauté chrétienne directement depuis votre téléphone</p>
+  <p class="sub">Installez l'application pour rejoindre votre communauté chrétienne</p>
   <div class="features">
     <span class="feat">🎤 Vocal</span>
     <span class="feat">📷 Photos</span>
     <span class="feat">🔴 Live</span>
     <span class="feat">🙏 Prière</span>
   </div>
-  <a class="btn-dl" href="https://github.com/widgerestimable557-cpu/chc-app/releases/latest/download/app-debug.apk">
-    ⬇️ Télécharger l'App
-  </a>
-  <p class="note">📱 Android 6.0+ requis • Gratuit<br>Activez "Sources inconnues" avant d'installer</p>
+  <div class="warn-box" id="warn-box">📱 Appuyez sur le bouton pour ouvrir dans Chrome et télécharger.</div>
+  <button class="btn-main" id="main-btn" onclick="startDownload()">⬇️ Télécharger l'application</button>
+  <div class="progress-wrap" id="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill"></div></div>
+    <div class="progress-text" id="progress-text">Téléchargement en cours...</div>
+  </div>
+  <div class="steps" id="steps"></div>
+  <p class="note" id="bottom-note">Android 6.0+ requis • Gratuit</p>
 </div>
+<script>
+var APK='https://github.com/widgerestimable557-cpu/chc-app/releases/latest/download/app-debug.apk';
+var PAGE='https://widgerestimable557-cpu.github.io/chc-app/';
+function isAndroid(){return /Android/i.test(navigator.userAgent);}
+function isInApp(){return /WhatsApp|Instagram|FBAN|FBAV|FB_IAB|Line|Twitter|Snapchat|TikTok/i.test(navigator.userAgent);}
+function showSteps(html){var el=document.getElementById('steps');el.innerHTML=html;el.classList.add('show');}
+function openInChrome(){
+  window.location.href='intent://'+PAGE.replace('https://','')+'#Intent;scheme=https;package=com.android.chrome;end';
+  setTimeout(function(){window.open(PAGE,'_blank');},1500);
+}
+function startDownload(){
+  if(!isAndroid()){window.open(APK,'_blank');return;}
+  if(isInApp()){openInChrome();return;}
+  var btn=document.getElementById('main-btn');
+  btn.innerHTML='⏳ Téléchargement...';btn.disabled=true;
+  document.getElementById('progress-wrap').classList.add('show');
+  var a=document.createElement('a');a.href=APK;a.download='ChurchApp.apk';
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){document.body.removeChild(a);},1000);
+  setTimeout(function(){
+    document.getElementById('progress-text').textContent='✅ Regardez la barre de notifications !';
+    btn.innerHTML='✅ Téléchargé !';btn.style.background='#059669';
+    showSteps('<h3>📲 Comment installer :</h3>'+
+      '<div class="step"><div class="step-num">1</div><div class="step-text">Ouvrez la <strong>notification</strong> de téléchargement en bas de l\'écran</div></div>'+
+      '<div class="step"><div class="step-num">2</div><div class="step-text">Appuyez <strong>"Ouvrir"</strong> sur le fichier APK</div></div>'+
+      '<div class="step"><div class="step-num">3</div><div class="step-text">Si Android demande → <strong>"Paramètres"</strong> → activez <strong>"Sources inconnues"</strong> → revenez</div></div>'+
+      '<div class="step"><div class="step-num">4</div><div class="step-text">Appuyez <strong>"Installer"</strong> ✅</div></div>');
+  },3000);
+}
+window.onload=function(){
+  if(!isAndroid()){document.getElementById('bottom-note').textContent='📱 À ouvrir sur un téléphone Android';return;}
+  if(isInApp()){
+    document.getElementById('warn-box').style.display='block';
+    document.getElementById('main-btn').innerHTML='🌐 Ouvrir dans Chrome pour installer';
+    document.getElementById('main-btn').onclick=openInChrome;
+  }
+};
+</script>
 </body>
 </html>
