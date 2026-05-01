@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:sans-serif;background:linear-gradient(145deg,#075e54,#128c7e);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:#fff;border-radius:20px;padding:28px;width:100%;max-width:400px;text-align:center}
+#org-logo{width:72px;height:72px;border-radius:18px;object-fit:cover;margin:0 auto 12px;display:none;border:3px solid #f0f0f0}
+#org-name{font-size:20px;font-weight:800;color:#1f2937;margin-bottom:4px}
+#org-sub{font-size:13px;color:#6b7280;margin-bottom:20px}
+.spinner{width:36px;height:36px;border:4px solid #e5e7eb;border-top-color:#25d366;border-radius:50%;animation:spin 0.8s linear infinite;margin:16px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+label{font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;text-align:left}
+input{width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:10px;font-size:14px;outline:none;margin-bottom:4px}
+.err{color:#ef4444;font-size:12px;margin-bottom:12px;display:none;text-align:left}
+button{background:#25d366;color:#fff;border:none;padding:14px;border-radius:10px;width:100%;font-size:16px;font-weight:700;cursor:pointer;margin-top:8px}
+.hint{color:#9ca3af;font-size:11px;text-align:center;margin-top:14px;line-height:1.5}
+#manual{display:none}
+</style>
+</head>
+<body>
+<div class="card">
+  <img id="org-logo" src="" alt="Logo">
+  <div id="org-name">Church App</div>
+  <div id="org-sub">Chargement...</div>
+  <div class="spinner" id="spinner"></div>
+
+  <!-- Formulaire manuel (si pas d'URL sauvegardée) -->
+  <div id="manual">
+    <label>🔗 URL de votre application</label>
+    <input type="url" id="u" placeholder="https://script.google.com/macros/s/..."/>
+    <div class="err" id="e">Lien invalide</div>
+    <button onclick="go()">Se connecter →</button>
+    <div class="hint">💡 Ce lien est fourni par votre administrateur d'église.</div>
+  </div>
+</div>
+
+<script>
+function tryConnect() {
+  var orgUrl = null;
+
+  // Priorité 1 : URL sauvegardée lors du téléchargement (depuis la page download)
+  try { orgUrl = localStorage.getItem('chc_org_url'); } catch(e){}
+
+  // Priorité 2 : Ancienne clé
+  if (!orgUrl) {
+    try { orgUrl = localStorage.getItem('gas_url'); } catch(e){}
+  }
+
+  if (orgUrl && orgUrl.startsWith('http')) {
+    // ✅ URL trouvée — charger le branding et rediriger
+    loadBranding();
+    setTimeout(function() {
+      window.location.replace(orgUrl);
+    }, 800); // Petit délai pour afficher le logo
+    return;
+  }
+
+  // Pas d'URL — afficher le formulaire manuel
+  document.getElementById('spinner').style.display = 'none';
+  document.getElementById('org-sub').textContent = 'Connectez votre église';
+  document.getElementById('manual').style.display = 'block';
+}
+
+function loadBranding() {
+  try {
+    var b = JSON.parse(localStorage.getItem('chc_org_branding') || 'null');
+    if (b && b.orgName) {
+      document.getElementById('org-name').textContent = b.orgName;
+      document.getElementById('org-sub').textContent = 'Connexion en cours...';
+      if (window.AndroidBridge) AndroidBridge.updateBranding(b.orgName, b.logoUrl||'');
+    }
+    if (b && b.logoUrl) {
+      var img = document.getElementById('org-logo');
+      img.src = b.logoUrl;
+      img.style.display = 'block';
+    }
+  } catch(e) {}
+}
+
+function go() {
+  var u = document.getElementById('u').value.trim();
+  if (!u || !u.startsWith('http')) {
+    document.getElementById('e').style.display = 'block';
+    return;
+  }
+  document.getElementById('e').style.display = 'none';
+  try {
+    localStorage.setItem('chc_org_url', u);
+    localStorage.setItem('gas_url', u);
+  } catch(e){}
+  window.location.replace(u);
+}
+
+document.addEventListener('DOMContentLoaded', tryConnect);
+</script>
+</body>
+</html>
