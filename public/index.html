@@ -9,13 +9,7 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: system-ui, sans-serif; background: #f4f6fb; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-
-    /* SETUP SCREEN */
-    #setup-screen {
-      position: fixed; inset: 0; background: linear-gradient(145deg, #2563eb, #06b6d4);
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: 24px; z-index: 9999; overflow-y: auto;
-    }
+    #setup-screen { position: fixed; inset: 0; background: linear-gradient(145deg, #2563eb, #06b6d4); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; z-index: 9999; overflow-y: auto; }
     #setup-screen.hide { display: none; }
     .setup-logo { font-size: 56px; margin-bottom: 16px; }
     .setup-title { color: #fff; font-size: 24px; font-weight: 800; text-align: center; margin-bottom: 6px; }
@@ -27,49 +21,34 @@
     .setup-card input.error { border-color: #ef4444; }
     .btn-connect { background: #2563eb; color: #fff; border: none; padding: 14px; border-radius: 10px; width: 100%; font-size: 16px; font-weight: 700; cursor: pointer; margin-bottom: 12px; }
     .btn-connect:active { background: #1d4ed8; }
-
-    /* QR BUTTON */
     .btn-qr { background: #f0fdf4; color: #16a34a; border: 2px solid #16a34a; padding: 13px; border-radius: 10px; width: 100%; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
     .btn-qr:active { background: #dcfce7; }
-
     .divider { display: flex; align-items: center; gap: 10px; margin: 4px 0 12px; }
     .divider span { font-size: 12px; color: #9ca3af; white-space: nowrap; }
     .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #e5e7eb; }
-
     .err-msg { color: #ef4444; font-size: 13px; text-align: center; margin-top: 8px; display: none; }
     .setup-hint { color: rgba(255,255,255,0.7); font-size: 12px; text-align: center; margin-top: 16px; max-width: 320px; line-height: 1.5; }
-
-    /* QR SCANNER SCREEN */
-    #qr-screen {
-      position: fixed; inset: 0; background: #000;
-      display: none; flex-direction: column; align-items: center; justify-content: center;
-      z-index: 10000;
-    }
+    #qr-screen { position: fixed; inset: 0; background: #000; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; }
     #qr-screen.visible { display: flex; }
     .qr-header { position: absolute; top: 0; left: 0; right: 0; padding: 16px 20px; display: flex; align-items: center; gap: 12px; background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent); }
     .btn-back { background: rgba(255,255,255,0.15); border: none; color: #fff; width: 38px; height: 38px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     .qr-header-title { color: #fff; font-size: 16px; font-weight: 700; }
-
     #qr-video { width: 100%; height: 100%; object-fit: cover; }
     #qr-canvas { display: none; }
-
     .qr-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
     .qr-frame { width: 260px; height: 260px; position: relative; }
     .qr-frame::before, .qr-frame::after { content: ''; position: absolute; width: 50px; height: 50px; border-color: #fff; border-style: solid; }
     .qr-frame::before { top: 0; left: 0; border-width: 4px 0 0 4px; border-radius: 6px 0 0 0; }
-    .qr-frame::after  { bottom: 0; right: 0; border-width: 0 4px 4px 0; border-radius: 0 0 6px 0; }
+    .qr-frame::after { bottom: 0; right: 0; border-width: 0 4px 4px 0; border-radius: 0 0 6px 0; }
     .qr-corner-tr, .qr-corner-bl { position: absolute; width: 50px; height: 50px; border-color: #fff; border-style: solid; }
     .qr-corner-tr { top: 0; right: 0; border-width: 4px 4px 0 0; border-radius: 0 6px 0 0; }
     .qr-corner-bl { bottom: 0; left: 0; border-width: 0 0 4px 4px; border-radius: 0 0 0 6px; }
     .qr-scan-line { position: absolute; left: 8px; right: 8px; height: 2px; background: linear-gradient(90deg, transparent, #2563eb, #06b6d4, #2563eb, transparent); animation: scan 2s linear infinite; top: 0; border-radius: 2px; }
     @keyframes scan { 0%{top:8px} 100%{top:calc(100% - 10px)} }
-
     .qr-hint { color: rgba(255,255,255,0.8); font-size: 13px; margin-top: 24px; text-align: center; padding: 0 40px; line-height: 1.6; }
     .qr-status { margin-top: 16px; background: rgba(255,255,255,0.15); color: #fff; font-size: 13px; padding: 8px 20px; border-radius: 999px; }
     .qr-status.success { background: #16a34a; }
-    .qr-status.error-status { background: #dc2626; }
-
-    /* SPLASH */
+    .qr-status.err { background: #dc2626; }
     #splash { position: fixed; inset: 0; background: linear-gradient(145deg, #2563eb, #06b6d4); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 8888; transition: opacity 0.5s ease; }
     #splash.hide { opacity: 0; pointer-events: none; }
     .splash-logo { font-size: 52px; margin-bottom: 16px; animation: pulse 1.8s infinite; }
@@ -78,36 +57,24 @@
     .splash-loader { margin-top: 32px; width: 180px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 999px; overflow: hidden; }
     .splash-bar { height: 100%; background: #fff; border-radius: 999px; animation: load 2s forwards; }
     @keyframes load { from{width:0} to{width:100%} }
-
-    /* ERROR */
     #error-screen { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 40px 24px; text-align: center; gap: 16px; flex: 1; }
     #error-screen .ico { font-size: 52px; }
     #error-screen h2 { font-size: 20px; color: #1f2937; }
     #error-screen p { font-size: 14px; color: #6b7280; max-width: 300px; line-height: 1.6; }
     .btn-retry { background: #2563eb; color: #fff; border: none; padding: 12px 28px; border-radius: 999px; font-size: 15px; font-weight: 600; cursor: pointer; }
     .btn-change { background: none; color: #2563eb; border: 2px solid #2563eb; padding: 10px 24px; border-radius: 999px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 4px; }
-
-    /* FRAME */
     #app-frame { flex: 1; border: none; display: none; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
     #app-frame.visible { display: block; }
   </style>
 </head>
 <body>
-
-<!-- SETUP SCREEN -->
 <div id="setup-screen">
   <div class="setup-logo">✝️</div>
   <div class="setup-title">Church App</div>
   <div class="setup-sub">Connectez votre église</div>
   <div class="setup-card">
-
-    <!-- QR SCANNER BUTTON -->
-    <button class="btn-qr" onclick="openQrScanner()">
-      <span>📷</span> Scanner le QR code de l'église
-    </button>
-
+    <button class="btn-qr" onclick="openQrScanner()"><span>📷</span> Scanner le QR code de l'église</button>
     <div class="divider"><span>ou entrez le lien manuellement</span></div>
-
     <label>🔗 Lien de votre application (URL GAS)</label>
     <input type="url" id="gas-input" placeholder="https://script.google.com/macros/s/..." />
     <button class="btn-connect" onclick="connectApp()">Se connecter →</button>
@@ -115,8 +82,6 @@
   </div>
   <div class="setup-hint">💡 Scannez le QR code fourni par votre administrateur d'église, ou collez le lien directement.</div>
 </div>
-
-<!-- QR SCANNER SCREEN -->
 <div id="qr-screen">
   <div class="qr-header">
     <button class="btn-back" onclick="closeQrScanner()">←</button>
@@ -134,15 +99,11 @@
     <div class="qr-status" id="qr-status">🔍 Recherche en cours...</div>
   </div>
 </div>
-
-<!-- SPLASH -->
 <div id="splash" style="display:none">
   <div class="splash-logo">✝️</div>
-  <div class="splash-name" id="splash-name">Chargement...</div>
+  <div class="splash-name">Chargement...</div>
   <div class="splash-loader"><div class="splash-bar"></div></div>
 </div>
-
-<!-- ERROR -->
 <div id="error-screen">
   <div class="ico">📡</div>
   <h2>Connexion impossible</h2>
@@ -150,158 +111,74 @@
   <button class="btn-retry" onclick="retryApp()">🔄 Réessayer</button>
   <button class="btn-change" onclick="changeApp()">🔧 Changer de lien</button>
 </div>
-
-<!-- APP FRAME -->
-<iframe id="app-frame" src="about:blank"
-  allow="camera; microphone; geolocation; fullscreen"
-  sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-modals allow-top-navigation">
-</iframe>
-
+<iframe id="app-frame" src="about:blank" allow="camera; microphone; geolocation; fullscreen" sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-modals allow-top-navigation"></iframe>
 <script>
-  const KEY = 'chc_gas_url';
-  const setupEl  = document.getElementById('setup-screen');
-  const splashEl = document.getElementById('splash');
-  const errorEl  = document.getElementById('error-screen');
-  const frameEl  = document.getElementById('app-frame');
-  const inputEl  = document.getElementById('gas-input');
-  const errMsg   = document.getElementById('err-msg');
-  const qrScreen = document.getElementById('qr-screen');
-  const qrVideo  = document.getElementById('qr-video');
-  const qrCanvas = document.getElementById('qr-canvas');
-  const qrStatus = document.getElementById('qr-status');
-
-  let qrStream = null;
-  let qrAnimFrame = null;
-  let qrDone = false;
-
-  // Au démarrage : URL sauvegardée ?
-  const saved = localStorage.getItem(KEY);
-  if (saved) {
-    setupEl.classList.add('hide');
-    launchApp(saved);
-  }
-
-  /* ===== QR SCANNER ===== */
-  async function openQrScanner() {
-    qrDone = false;
-    qrStatus.className = 'qr-status';
-    qrStatus.textContent = '🔍 Recherche en cours...';
+  const KEY='chc_gas_url';
+  const setupEl=document.getElementById('setup-screen');
+  const splashEl=document.getElementById('splash');
+  const errorEl=document.getElementById('error-screen');
+  const frameEl=document.getElementById('app-frame');
+  const inputEl=document.getElementById('gas-input');
+  const errMsg=document.getElementById('err-msg');
+  const qrScreen=document.getElementById('qr-screen');
+  const qrVideo=document.getElementById('qr-video');
+  const qrCanvas=document.getElementById('qr-canvas');
+  const qrStatus=document.getElementById('qr-status');
+  let qrStream=null,qrAnimFrame=null,qrDone=false;
+  const saved=localStorage.getItem(KEY);
+  if(saved){setupEl.classList.add('hide');launchApp(saved);}
+  async function openQrScanner(){
+    qrDone=false;qrStatus.className='qr-status';qrStatus.textContent='🔍 Recherche en cours...';
     qrScreen.classList.add('visible');
-
-    try {
-      qrStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
-      });
-      qrVideo.srcObject = qrStream;
-      qrVideo.addEventListener('loadedmetadata', () => {
-        qrVideo.play();
-        requestAnimationFrame(scanFrame);
-      });
-    } catch (err) {
-      qrStatus.className = 'qr-status error-status';
-      qrStatus.textContent = '❌ Caméra inaccessible — utilisez le lien manuel';
-    }
+    try{
+      qrStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}});
+      qrVideo.srcObject=qrStream;
+      qrVideo.addEventListener('loadedmetadata',()=>{qrVideo.play();requestAnimationFrame(scanFrame);});
+    }catch(err){qrStatus.className='qr-status err';qrStatus.textContent='❌ Caméra inaccessible — utilisez le lien manuel';}
   }
-
-  function scanFrame() {
-    if (qrDone) return;
-    if (qrVideo.readyState === qrVideo.HAVE_ENOUGH_DATA) {
-      const ctx = qrCanvas.getContext('2d');
-      qrCanvas.width  = qrVideo.videoWidth;
-      qrCanvas.height = qrVideo.videoHeight;
-      ctx.drawImage(qrVideo, 0, 0, qrCanvas.width, qrCanvas.height);
-      const imageData = ctx.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
-      const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
-      if (code && code.data) {
-        const url = code.data.trim();
-        if (url.startsWith('http://') || url.startsWith('https://')) {
-          qrDone = true;
-          qrStatus.className = 'qr-status success';
-          qrStatus.textContent = '✅ QR code détecté !';
+  function scanFrame(){
+    if(qrDone)return;
+    if(qrVideo.readyState===qrVideo.HAVE_ENOUGH_DATA){
+      const ctx=qrCanvas.getContext('2d');
+      qrCanvas.width=qrVideo.videoWidth;qrCanvas.height=qrVideo.videoHeight;
+      ctx.drawImage(qrVideo,0,0,qrCanvas.width,qrCanvas.height);
+      const img=ctx.getImageData(0,0,qrCanvas.width,qrCanvas.height);
+      const code=jsQR(img.data,img.width,img.height,{inversionAttempts:'dontInvert'});
+      if(code&&code.data){
+        const url=code.data.trim();
+        if(url.startsWith('http://)||url.startsWith('https://')){
+          qrDone=true;qrStatus.className='qr-status success';qrStatus.textContent='✅ QR code détecté !';
           stopCamera();
-          setTimeout(() => {
-            localStorage.setItem(KEY, url);
-            closeQrScanner();
-            setupEl.classList.add('hide');
-            launchApp(url);
-          }, 800);
+          setTimeout(()=>{localStorage.setItem(KEY,url);closeQrScanner();setupEl.classList.add('hide');launchApp(url);},800);
           return;
-        } else {
-          qrStatus.className = 'qr-status error-status';
-          qrStatus.textContent = '❌ QR code invalide — pas un lien d\'église';
-        }
+        }else{qrStatus.className='qr-status err';qrStatus.textContent='❌ QR invalide';}
       }
     }
-    qrAnimFrame = requestAnimationFrame(scanFrame);
+    qrAnimFrame=requestAnimationFrame(scanFrame);
   }
-
-  function stopCamera() {
-    if (qrAnimFrame) cancelAnimationFrame(qrAnimFrame);
-    if (qrStream) { qrStream.getTracks().forEach(t => t.stop()); qrStream = null; }
-    qrVideo.srcObject = null;
+  function stopCamera(){if(qrAnimFrame)cancelAnimationFrame(qrAnimFrame);if(qrStream){qrStream.getTracks().forEach(t=>t.stop());qrStream=null;}qrVideo.srcObject=null;}
+  function closeQrScanner(){stopCamera();qrScreen.classList.remove('visible');}
+  function connectApp(){
+    const url=inputEl.value.trim();
+    if(!url||(!url.startsWith('http://')&&!url.startsWith('https://'))){inputEl.classList.add('error');errMsg.style.display='block';return;}
+    inputEl.classList.remove('error');errMsg.style.display='none';
+    localStorage.setItem(KEY,url);setupEl.classList.add('hide');launchApp(url);
   }
-
-  function closeQrScanner() {
-    stopCamera();
-    qrScreen.classList.remove('visible');
+  function launchApp(url){
+    splashEl.style.display='flex';splashEl.classList.remove('hide');
+    errorEl.style.display='none';frameEl.classList.remove('visible');
+    setTimeout(()=>{
+      frameEl.src=url;
+      const timeout=setTimeout(showError,20000);
+      frameEl.onload=()=>{clearTimeout(timeout);showApp();};
+      frameEl.onerror=()=>{clearTimeout(timeout);showError();};
+    },2000);
   }
-
-  /* ===== CONNEXION MANUELLE ===== */
-  function connectApp() {
-    const url = inputEl.value.trim();
-    if (!url || (!url.startsWith('http://') && !url.startsWith('https://'))) {
-      inputEl.classList.add('error');
-      errMsg.style.display = 'block';
-      return;
-    }
-    inputEl.classList.remove('error');
-    errMsg.style.display = 'none';
-    localStorage.setItem(KEY, url);
-    setupEl.classList.add('hide');
-    launchApp(url);
-  }
-
-  /* ===== LANCEMENT APP ===== */
-  function launchApp(url) {
-    splashEl.style.display = 'flex';
-    splashEl.classList.remove('hide');
-    errorEl.style.display = 'none';
-    frameEl.classList.remove('visible');
-
-    setTimeout(() => {
-      frameEl.src = url;
-      const timeout = setTimeout(showError, 20000);
-      frameEl.onload  = () => { clearTimeout(timeout); showApp(); };
-      frameEl.onerror = () => { clearTimeout(timeout); showError(); };
-    }, 2000);
-  }
-
-  function showApp() {
-    splashEl.classList.add('hide');
-    setTimeout(() => { splashEl.style.display = 'none'; frameEl.classList.add('visible'); }, 500);
-  }
-
-  function showError() {
-    splashEl.style.display = 'none';
-    errorEl.style.display = 'flex';
-  }
-
-  function retryApp() {
-    const url = localStorage.getItem(KEY);
-    if (url) launchApp(url);
-  }
-
-  function changeApp() {
-    localStorage.removeItem(KEY);
-    errorEl.style.display = 'none';
-    frameEl.classList.remove('visible');
-    frameEl.src = 'about:blank';
-    setupEl.classList.remove('hide');
-    inputEl.value = '';
-  }
-
-  // Entrée clavier
-  inputEl.addEventListener('keydown', e => { if (e.key === 'Enter') connectApp(); });
+  function showApp(){splashEl.classList.add('hide');setTimeout(()=>{splashEl.style.display='none';frameEl.classList.add('visible');},500);}
+  function showError(){splashEl.style.display='none';errorEl.style.display='flex';}
+  function retryApp(){const url=localStorage.getItem(KEY);if(url)launchApp(url);}
+  function changeApp(){localStorage.removeItem(KEY);errorEl.style.display='none';frameEl.classList.remove('visible');frameEl.src='about:blank';setupEl.classList.remove('hide');inputEl.value='';}
+  inputEl.addEventListener('keydown',e=>{if(e.key==='Enter')connectApp();});
 </script>
 </body>
 </html>
