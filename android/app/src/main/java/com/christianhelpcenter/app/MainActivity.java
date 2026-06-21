@@ -104,6 +104,19 @@ public class MainActivity extends Activity {
                 if (logo != null && !logo.isEmpty()) loadLogoAsTaskIcon(name, logo);
             }});
         }
+
+        @JavascriptInterface public void registerForPush(final String orgUrl) {
+            if (orgUrl == null || orgUrl.isEmpty()) return;
+            PushUtils.saveOrgUrl(MainActivity.this, orgUrl);
+            com.google.firebase.messaging.FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(new com.google.android.gms.tasks.OnCompleteListener<String>() {
+                    @Override public void onComplete(com.google.android.gms.tasks.Task<String> task) {
+                        if (task.isSuccessful() && task.getResult() != null) {
+                            PushUtils.sendTokenToBackend(MainActivity.this, orgUrl, task.getResult());
+                        }
+                    }
+                });
+        }
     }
 
     private void loadLogoAsTaskIcon(final String name, final String logoUrl) {
@@ -130,6 +143,13 @@ public class MainActivity extends Activity {
         java.util.List<String> needed = new java.util.ArrayList<>();
         for (String p : perms)
             if (checkSelfPermission(p) != PackageManager.PERMISSION_GRANTED) needed.add(p);
+
+        if (android.os.Build.VERSION.SDK_INT >= 33
+                && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+            needed.add(Manifest.permission.POST_NOTIFICATIONS);
+        }
+
         if (!needed.isEmpty())
             requestPermissions(needed.toArray(new String[0]), PERM_CODE);
     }

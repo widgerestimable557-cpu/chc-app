@@ -52,6 +52,9 @@ function tryConnect() {
   if (orgUrl && orgUrl.startsWith('http')) {
     // ✅ URL trouvée — charger le branding et rediriger
     loadBranding();
+    if (window.AndroidBridge && AndroidBridge.registerForPush) {
+      try { AndroidBridge.registerForPush(orgUrl); } catch(e){}
+    }
     setTimeout(function() {
       window.location.replace(orgUrl);
     }, 800); // Petit délai pour afficher le logo
@@ -91,6 +94,9 @@ function go() {
     localStorage.setItem('chc_org_url', u);
     localStorage.setItem('gas_url', u);
   } catch(e){}
+  if (window.AndroidBridge && AndroidBridge.registerForPush) {
+    try { AndroidBridge.registerForPush(u); } catch(e){}
+  }
   window.location.replace(u);
 }
 
