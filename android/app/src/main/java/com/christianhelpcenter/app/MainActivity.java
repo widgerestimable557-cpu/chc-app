@@ -117,6 +117,19 @@ public class MainActivity extends Activity {
                     }
                 });
         }
+
+        @JavascriptInterface public void linkPushToUser(final String email) {
+            final String orgUrl = PushUtils.getSavedOrgUrl(MainActivity.this);
+            if (orgUrl == null || email == null || email.isEmpty()) return;
+            com.google.firebase.messaging.FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(new com.google.android.gms.tasks.OnCompleteListener<String>() {
+                    @Override public void onComplete(com.google.android.gms.tasks.Task<String> task) {
+                        if (task.isSuccessful() && task.getResult() != null) {
+                            PushUtils.linkTokenToUser(MainActivity.this, orgUrl, task.getResult(), email);
+                        }
+                    }
+                });
+        }
     }
 
     private void loadLogoAsTaskIcon(final String name, final String logoUrl) {
