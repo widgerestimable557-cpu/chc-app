@@ -3,13 +3,16 @@ package com.christianhelpcenter.app;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.webkit.GeolocationPermissions;
 import android.webkit.JavascriptInterface;
 import android.webkit.PermissionRequest;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -23,10 +26,9 @@ public class MainActivity extends Activity {
 
     private WebView webView;
     private static final int PERM_CODE = 1001;
+    private static final int FILE_CHOOSER_CODE = 1002;
+    private ValueCallback<Uri[]> fileUploadCallback;
 
-    // ✅ CLEF : Charger directement la page bridge sur GitHub Pages
-    // Cette page lit le localStorage (sauvegardé lors du téléchargement)
-    // et redirige automatiquement vers l'église
     private static final String BRIDGE_URL =
         "https://widgerestimable557-cpu.github.io/chc-app/bridge.html";
 
@@ -73,12 +75,44 @@ public class MainActivity extends Activity {
                     GeolocationPermissions.Callback cb) {
                 cb.invoke(origin, true, false);
             }
+            @Override
+            public boolean onShowFileChooser(WebView webView,
+                    ValueCallback<Uri[]> filePathCallback,
+                    WebChromeClient.FileChooserParams fileChooserParams) {
+                if (fileUploadCallback != null) {
+                    fileUploadCallback.onReceiveValue(null);
+                    fileUploadCallback = null;
+                }
+                fileUploadCallback = filePathCallback;
+                Intent intent = fileChooserParams.createIntent();
+                try {
+                    startActivityForResult(intent, FILE_CHOOSER_CODE);
+                } catch (Exception e) {
+                    fileUploadCallback = null;
+                    return false;
+                }
+                return true;
+            }
         });
 
         requestNativePermissions();
-
-        // ✅ Charger la page bridge — elle gère tout automatiquement
         webView.loadUrl(BRIDGE_URL);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == FILE_CHOOSER_CODE) {
+            if (fileUploadCallback == null) return;
+            Uri[] results = null;
+            if (resultCode == Activity.RESULT_OK && data != null) {
+                String dataString = data.getDataString();
+                if (dataString != null) {
+                    results = new Uri[]{Uri.parse(dataString)};
+                }
+            }
+            fileUploadCallback.onReceiveValue(results);
+            fileUploadCallback = null;
+        }
     }
 
     public class AndroidBridge {
@@ -148,19 +182,25 @@ public class MainActivity extends Activity {
     }
 
     private void requestNativePermissions() {
+        java.util.List<String> needed = new java.util.ArrayList<>();
         String[] perms = {
             Manifest.permission.CAMERA,
             Manifest.permission.RECORD_AUDIO,
             Manifest.permission.MODIFY_AUDIO_SETTINGS
         };
-        java.util.List<String> needed = new java.util.ArrayList<>();
         for (String p : perms)
             if (checkSelfPermission(p) != PackageManager.PERMISSION_GRANTED) needed.add(p);
 
-        if (android.os.Build.VERSION.SDK_INT >= 33
-                && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)
-                    != PackageManager.PERMISSION_GRANTED) {
-            needed.add(Manifest.permission.POST_NOTIFICATIONS);
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED)
+                needed.add(Manifest.permission.POST_NOTIFICATIONS);
+            if (checkSelfPermission(Manifest.permission.READ_MEDIA_IMAGES)
+                    != PackageManager.PERMISSION_GRANTED)
+                needed.add(Manifest.permission.READ_MEDIA_IMAGES);
+            if (checkSelfPermission(Manifest.permission.READ_MEDIA_VIDEO)
+                    != PackageManager.PERMISSION_GRANTED)
+                needed.add(Manifest.permission.READ_MEDIA_VIDEO);
         }
 
         if (!needed.isEmpty())
