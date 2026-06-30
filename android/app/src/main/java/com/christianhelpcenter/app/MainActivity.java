@@ -96,6 +96,19 @@ public class MainActivity extends Activity {
         });
 
         requestNativePermissions();
+
+        com.google.firebase.messaging.FirebaseMessaging.getInstance().getToken()
+            .addOnCompleteListener(new com.google.android.gms.tasks.OnCompleteListener<String>() {
+                @Override public void onComplete(com.google.android.gms.tasks.Task<String> task) {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        final String tok = task.getResult();
+                        android.util.Log.d("CHC_FCM_TOKEN", tok);
+                        runOnUiThread(new Runnable() { @Override public void run() {
+                            android.widget.Toast.makeText(MainActivity.this, "Token FCM copie dans logcat", android.widget.Toast.LENGTH_LONG).show();
+                        }});
+                    }
+                }
+            });
         webView.loadUrl(BRIDGE_URL);
     }
 
