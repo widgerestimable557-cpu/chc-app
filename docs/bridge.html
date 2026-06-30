@@ -1,106 +1,163 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CHC Haiti — Connexion</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:sans-serif;background:linear-gradient(145deg,#075e54,#128c7e);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-.card{background:#fff;border-radius:20px;padding:28px;width:100%;max-width:400px;text-align:center}
-#org-logo{width:72px;height:72px;border-radius:18px;object-fit:cover;margin:0 auto 12px;display:none;border:3px solid #f0f0f0}
-#org-name{font-size:20px;font-weight:800;color:#1f2937;margin-bottom:4px}
-#org-sub{font-size:13px;color:#6b7280;margin-bottom:20px}
-.spinner{width:36px;height:36px;border:4px solid #e5e7eb;border-top-color:#25d366;border-radius:50%;animation:spin 0.8s linear infinite;margin:16px auto}
-@keyframes spin{to{transform:rotate(360deg)}}
-label{font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;text-align:left}
-input{width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:10px;font-size:14px;outline:none;margin-bottom:4px}
-.err{color:#ef4444;font-size:12px;margin-bottom:12px;display:none;text-align:left}
-button{background:#25d366;color:#fff;border:none;padding:14px;border-radius:10px;width:100%;font-size:16px;font-weight:700;cursor:pointer;margin-top:8px}
-.hint{color:#9ca3af;font-size:11px;text-align:center;margin-top:14px;line-height:1.5}
-#manual{display:none}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#0f172a;color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+  .logo{width:90px;height:90px;border-radius:50%;margin-bottom:16px}
+  h1{font-size:20px;margin:0 0 4px;text-align:center}
+  p.sub{color:#94a3b8;font-size:13px;margin:0 0 24px;text-align:center}
+  .card{background:#1e293b;border-radius:16px;padding:20px;width:100%;max-width:380px}
+  .spinner{width:36px;height:36px;border:4px solid #334155;border-top-color:#2563eb;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  input{width:100%;padding:12px;border:2px solid #334155;background:#0f172a;color:#fff;border-radius:10px;font-size:14px;outline:none;margin-bottom:10px}
+  input::placeholder{color:#64748b}
+  button{background:#2563eb;color:#fff;border:none;padding:14px;border-radius:10px;width:100%;font-size:16px;font-weight:700;cursor:pointer;margin-top:8px}
+  button:active{background:#1d4ed8}
+  .btn-scan{background:#0ea5e9;display:flex;align-items:center;justify-content:center;gap:8px}
+  .or{display:flex;align-items:center;gap:10px;margin:16px 0;color:#64748b;font-size:12px}
+  .or::before,.or::after{content:"";flex:1;height:1px;background:#334155}
+  #scannerWrap{display:none;position:fixed;inset:0;background:#000;z-index:999;flex-direction:column}
+  #qrVideo{flex:1;width:100%;object-fit:cover}
+  .scan-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:240px;height:240px;border:3px solid #2563eb;border-radius:16px;pointer-events:none}
+  .scan-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.15);border:none;color:#fff;width:40px;height:40px;border-radius:50%;font-size:20px;cursor:pointer;z-index:1000}
+  .scan-hint{position:absolute;bottom:30px;left:0;right:0;text-align:center;color:#fff;font-size:14px;padding:0 20px}
+  #qrError{display:none;color:#fca5a5;background:rgba(0,0,0,.8);padding:10px;border-radius:8px;font-size:13px;text-align:center;position:absolute;top:60px;left:16px;right:16px}
 </style>
 </head>
 <body>
-<div class="card">
-  <img id="org-logo" src="" alt="Logo">
-  <div id="org-name">Church App</div>
-  <div id="org-sub">Chargement...</div>
-  <div class="spinner" id="spinner"></div>
 
-  <!-- Formulaire manuel (si pas d'URL sauvegardée) -->
-  <div id="manual">
-    <label>🔗 URL de votre application</label>
-    <input type="url" id="u" placeholder="https://script.google.com/macros/s/..."/>
-    <div class="err" id="e">Lien invalide</div>
-    <button onclick="go()">Se connecter →</button>
-    <div class="hint">💡 Ce lien est fourni par votre administrateur d'église.</div>
+  <div id="loadingState" style="display:none;text-align:center;">
+    <div class="spinner"></div>
+    <p class="sub">Connexion à votre église…</p>
   </div>
-</div>
 
+  <div id="manualState" style="display:none;width:100%;max-width:380px;">
+    <img class="logo" src="https://widgerestimable557-cpu.github.io/chc-app/Gemini_Generated_Image_4rkx5r4rkx5r4rkx%20(1).png" alt="CHC Haiti">
+    <h1>Bienvenue sur CHC Haiti</h1>
+    <p class="sub">Réseau Multi-Église</p>
+
+    <div class="card">
+      <button class="btn-scan" onclick="openScanner()">📷 Scanner le QR code de l'église</button>
+      <div class="or">ou</div>
+      <input type="url" id="u" placeholder="https://script.google.com/macros/s/...">
+      <button onclick="go()">Se connecter</button>
+    </div>
+  </div>
+
+  <div id="scannerWrap">
+    <button class="scan-close" onclick="closeScanner()">✕</button>
+    <video id="qrVideo" playsinline muted autoplay></video>
+    <div class="scan-overlay"></div>
+    <div class="scan-hint">Visez le QR code de votre église</div>
+    <div id="qrError"></div>
+  </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.js"></script>
 <script>
-function tryConnect() {
-  var orgUrl = null;
-
-  // Priorité 1 : URL sauvegardée lors du téléchargement (depuis la page download)
-  try { orgUrl = localStorage.getItem('chc_org_url'); } catch(e){}
-
-  // Priorité 2 : Ancienne clé
-  if (!orgUrl) {
-    try { orgUrl = localStorage.getItem('gas_url'); } catch(e){}
+  function go() {
+    var u = document.getElementById('u').value.trim();
+    if (!u || !u.startsWith('http')) { alert('Lien invalide.'); return; }
+    saveAndRedirect(u);
   }
 
-  if (orgUrl && orgUrl.startsWith('http')) {
-    // ✅ URL trouvée — charger le branding et rediriger
-    loadBranding();
+  function saveAndRedirect(u) {
+    try {
+      localStorage.setItem('chc_org_url', u);
+      localStorage.setItem('gas_url', u);
+    } catch(e){}
     if (window.AndroidBridge && AndroidBridge.registerForPush) {
-      try { AndroidBridge.registerForPush(orgUrl); } catch(e){}
+      try { AndroidBridge.registerForPush(u); } catch(e){}
     }
-    setTimeout(function() {
-      window.location.replace(orgUrl);
-    }, 800); // Petit délai pour afficher le logo
-    return;
+    window.location.replace(u);
   }
 
-  // Pas d'URL — afficher le formulaire manuel
-  document.getElementById('spinner').style.display = 'none';
-  document.getElementById('org-sub').textContent = 'Connectez votre église';
-  document.getElementById('manual').style.display = 'block';
-}
+  /* ============ SCANNER QR ============ */
+  var qrStream = null;
+  var qrScanning = false;
 
-function loadBranding() {
-  try {
-    var b = JSON.parse(localStorage.getItem('chc_org_branding') || 'null');
-    if (b && b.orgName) {
-      document.getElementById('org-name').textContent = b.orgName;
-      document.getElementById('org-sub').textContent = 'Connexion en cours...';
-      if (window.AndroidBridge) AndroidBridge.updateBranding(b.orgName, b.logoUrl||'');
-    }
-    if (b && b.logoUrl) {
-      var img = document.getElementById('org-logo');
-      img.src = b.logoUrl;
-      img.style.display = 'block';
-    }
-  } catch(e) {}
-}
+  function openScanner() {
+    var wrap = document.getElementById('scannerWrap');
+    var video = document.getElementById('qrVideo');
+    var errBox = document.getElementById('qrError');
+    errBox.style.display = 'none';
+    wrap.style.display = 'flex';
 
-function go() {
-  var u = document.getElementById('u').value.trim();
-  if (!u || !u.startsWith('http')) {
-    document.getElementById('e').style.display = 'block';
-    return;
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+      .then(function(stream) {
+        qrStream = stream;
+        video.srcObject = stream;
+        video.setAttribute('playsinline', true);
+        video.play();
+        qrScanning = true;
+        requestAnimationFrame(scanLoop);
+      })
+      .catch(function(err) {
+        errBox.style.display = 'block';
+        errBox.innerText = "Impossible d'accéder à la caméra. Utilisez le lien manuel.";
+      });
   }
-  document.getElementById('e').style.display = 'none';
-  try {
-    localStorage.setItem('chc_org_url', u);
-    localStorage.setItem('gas_url', u);
-  } catch(e){}
-  if (window.AndroidBridge && AndroidBridge.registerForPush) {
-    try { AndroidBridge.registerForPush(u); } catch(e){}
-  }
-  window.location.replace(u);
-}
 
-document.addEventListener('DOMContentLoaded', tryConnect);
+  function closeScanner() {
+    qrScanning = false;
+    if (qrStream) {
+      qrStream.getTracks().forEach(function(t){ t.stop(); });
+      qrStream = null;
+    }
+    document.getElementById('scannerWrap').style.display = 'none';
+  }
+
+  function scanLoop() {
+    if (!qrScanning) return;
+    var video = document.getElementById('qrVideo');
+    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+      var canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      var code = jsQR(imageData.data, imageData.width, imageData.height);
+      if (code && code.data && code.data.startsWith('http')) {
+        closeScanner();
+        saveAndRedirect(code.data.trim());
+        return;
+      }
+    }
+    requestAnimationFrame(scanLoop);
+  }
+
+  /* ============ AUTO-CONNECT AU DÉMARRAGE ============ */
+  function tryConnect() {
+    var orgUrl = null;
+
+    // Priorité 1 : nouvelle clé
+    try { orgUrl = localStorage.getItem('chc_org_url'); } catch(e){}
+
+    // Priorité 2 : ancienne clé
+    if (!orgUrl) {
+      try { orgUrl = localStorage.getItem('gas_url'); } catch(e){}
+    }
+
+    if (orgUrl && orgUrl.startsWith('http')) {
+      // ✅ URL trouvée — rediriger directement
+      document.getElementById('loadingState').style.display = 'block';
+      if (window.AndroidBridge && AndroidBridge.registerForPush) {
+        try { AndroidBridge.registerForPush(orgUrl); } catch(e){}
+      }
+      setTimeout(function() {
+        window.location.replace(orgUrl);
+      }, 800);
+    } else {
+      // Pas d'URL — afficher le formulaire manuel + bouton scan
+      document.getElementById('manualState').style.display = 'block';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', tryConnect);
 </script>
 </body>
 </html>
