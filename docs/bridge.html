@@ -56,7 +56,7 @@
     <div id="qrError"></div>
   </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <script>
   function go() {
     var u = document.getElementById('u').value.trim();
@@ -80,6 +80,12 @@
   var qrScanning = false;
 
   function openScanner() {
+    if (typeof jsQR === "undefined") {
+      document.getElementById("qrError").style.display = "block";
+      document.getElementById("qrError").innerText = "Erreur: librairie de scan non chargee. Verifiez votre connexion internet.";
+      document.getElementById("scannerWrap").style.display = "flex";
+      return;
+    }
     var wrap = document.getElementById('scannerWrap');
     var video = document.getElementById('qrVideo');
     var errBox = document.getElementById('qrError');
