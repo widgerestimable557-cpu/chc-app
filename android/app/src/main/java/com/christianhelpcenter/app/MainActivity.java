@@ -104,7 +104,13 @@ public class MainActivity extends Activity {
                         final String tok = task.getResult();
                         android.util.Log.d("CHC_FCM_TOKEN", tok);
                         runOnUiThread(new Runnable() { @Override public void run() {
-                            android.widget.Toast.makeText(MainActivity.this, "Token FCM copie dans logcat", android.widget.Toast.LENGTH_LONG).show();
+                            android.widget.EditText et = new android.widget.EditText(MainActivity.this);
+                            et.setText(tok);
+                            new android.app.AlertDialog.Builder(MainActivity.this)
+                                .setTitle("Token FCM (copier)")
+                                .setView(et)
+                                .setPositiveButton("Fermer", null)
+                                .show();
                         }});
                     }
                 }
