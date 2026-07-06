@@ -23,8 +23,17 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     public void onNewToken(String token) {
         super.onNewToken(token);
         String orgUrl = PushUtils.getSavedOrgUrl(getApplicationContext());
+        String orgId  = PushUtils.getSavedOrgId(getApplicationContext());
+
+        // Garde l'abonnement au bon topic (celui de CETTE église) après un
+        // rafraîchissement de token — jamais un topic global partagé.
+        String topic = PushUtils.topicForOrg(orgId);
+        if (topic != null) {
+            com.google.firebase.messaging.FirebaseMessaging.getInstance().subscribeToTopic(topic);
+        }
+
         if (orgUrl != null) {
-            PushUtils.sendTokenToBackend(getApplicationContext(), orgUrl, token);
+            PushUtils.sendTokenToBackend(getApplicationContext(), orgUrl, orgId, token);
         }
     }
 
