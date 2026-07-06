@@ -161,11 +161,21 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void registerForPush(final String orgUrl) {
             if (orgUrl == null || orgUrl.isEmpty()) return;
             PushUtils.saveOrgUrl(MainActivity.this, orgUrl);
+            final String orgId = PushUtils.extractOrgId(orgUrl);
+
+            // ✅ App multi-église : topic SPÉCIFIQUE à cette église, pas un
+            // topic global — sinon toutes les églises recevraient les
+            // notifications de toutes les autres.
+            String topic = PushUtils.topicForOrg(orgId);
+            if (topic != null) {
+                com.google.firebase.messaging.FirebaseMessaging.getInstance().subscribeToTopic(topic);
+            }
+
             com.google.firebase.messaging.FirebaseMessaging.getInstance().getToken()
                 .addOnCompleteListener(new com.google.android.gms.tasks.OnCompleteListener<String>() {
                     @Override public void onComplete(com.google.android.gms.tasks.Task<String> task) {
                         if (task.isSuccessful() && task.getResult() != null) {
-                            PushUtils.sendTokenToBackend(MainActivity.this, orgUrl, task.getResult());
+                            PushUtils.sendTokenToBackend(MainActivity.this, orgUrl, orgId, task.getResult());
                         }
                     }
                 });
@@ -173,12 +183,13 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface public void linkPushToUser(final String email) {
             final String orgUrl = PushUtils.getSavedOrgUrl(MainActivity.this);
+            final String orgId  = PushUtils.getSavedOrgId(MainActivity.this);
             if (orgUrl == null || email == null || email.isEmpty()) return;
             com.google.firebase.messaging.FirebaseMessaging.getInstance().getToken()
                 .addOnCompleteListener(new com.google.android.gms.tasks.OnCompleteListener<String>() {
                     @Override public void onComplete(com.google.android.gms.tasks.Task<String> task) {
                         if (task.isSuccessful() && task.getResult() != null) {
-                            PushUtils.linkTokenToUser(MainActivity.this, orgUrl, task.getResult(), email);
+                            PushUtils.linkTokenToUser(MainActivity.this, orgUrl, orgId, task.getResult(), email);
                         }
                     }
                 });
