@@ -28,15 +28,28 @@ jobs:
       - name: Decode google-services.json
         run: echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 -d > android/app/google-services.json
 
-      - name: Build Debug APK
-        working-directory: android
-        run: ./gradlew assembleDebug --stacktrace
+      - name: Decode release keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/chc-release.keystore
 
-      - name: Upload Debug APK as artifact
+      - name: Create keystore.properties
+        run: |
+          cat > android/keystore.properties <<EOF
+          storeFile=chc-release.keystore
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          EOF
+
+      - name: Build Signed Release APK
+        working-directory: android
+        run: ./gradlew assembleRelease -PappVersionCode=${{ github.run_number }} --stacktrace
+
+      - name: Upload Release APK as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: CHC-Debug-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: CHC-Release-APK
+          path: android/app/build/outputs/apk/release/app-release.apk
           retention-days: 30
 
       - name: Delete old latest release
@@ -55,7 +68,7 @@ jobs:
             ## ✝️ Christian Help Center App
             Téléchargez et installez l'APK sur votre téléphone Android.
             > Android 6.0+ requis
-          files: android/app/build/outputs/apk/debug/app-debug.apk
+          files: android/app/build/outputs/apk/release/app-release.apk
           make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
